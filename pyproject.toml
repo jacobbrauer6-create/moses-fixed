@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=67.0", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "molsets"
+version = "0.3.2.post1"
+description = "Molecular Sets (MOSES): Benchmarking Platform for Molecular Generation Models — NumPy 2.x / Python 3.10-3.12 compatible fork"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Insilico Medicine", email = "opensource@insilico.com" },
+    { name = "Community patch maintainer" },
+]
+keywords = ["molecular generation", "drug discovery", "deep learning", "cheminformatics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+
+# PATCH NOTES vs original molsets 0.3.1:
+#   - REMOVED: pomegranate==0.12.0  (incompatible with NumPy >=2.0 and Python >=3.11)
+#     Replacement: scaffold diversity now computed via rdkit + scipy (pure Python, no Cython)
+#   - REMOVED: hard pin on specific rdkit version
+#     Replacement: rdkit >=2022.3 (works with both rdkit-pypi and the new 'rdkit' package)
+#   - CHANGED: pkg_resources → importlib.resources / importlib.metadata
+#   - CHANGED: setup.py → pyproject.toml (PEP 517/518 compliant)
+#   - CHANGED: training data is NOT bundled or fetched at install time
+#     (previously caused git-lfs failures); use moses.download_data() to fetch separately
+#   - CHANGED: fcd_torch 1.0.7 → fcd_torch >=1.0.5 (removes exact pin)
+
+dependencies = [
+    "numpy>=1.24",              # works with both 1.x and 2.x
+    "scipy>=1.9.0",             # replaces pomegranate for scaffold diversity
+    "scikit-learn>=1.1.0",
+    "pandas>=1.5.0",
+    "torch>=1.9.0",
+    "fcd_torch>=1.0.5",
+    "tqdm>=4.26.0",
+    "joblib>=0.9.0",
+    "matplotlib>=3.0.0",
+    "seaborn>=0.9.0",
+    "requests>=2.25.0",         # for optional data download
+]
+
+[project.optional-dependencies]
+rdkit = ["rdkit>=2022.3"]       # install separately: pip install rdkit
+dev   = ["pytest>=7.0", "black", "isort", "flake8"]
+
+[project.scripts]
+moses = "moses.script.cli:main"
+
+[project.urls]
+Homepage   = "https://github.com/molecularsets/moses"
+Repository = "https://github.com/molecularsets/moses"
+"Bug Tracker" = "https://github.com/molecularsets/moses/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["moses*"]
+exclude = ["tests*", "data*"]
+
+[tool.setuptools.package-data]
+moses = ["*.txt", "*.md"]
+
+# Do NOT include data/*.smi.gz in the package distribution.
+# Users should call moses.download_data() or use moses.datasets.get_dataset()
+# which downloads on first use.
